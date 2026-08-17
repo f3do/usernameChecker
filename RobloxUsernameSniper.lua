@@ -89,7 +89,7 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(450, 540)
+main.Size = UDim2.fromOffset(450, 590)
 main.Position = UDim2.new(0.5, -225, 0.5, -270)
 main.BackgroundColor3 = Color3.fromRGB(17,17,23)
 main.BorderSizePixel = 0
@@ -130,46 +130,220 @@ close.Parent = main
 Instance.new("UICorner", close).CornerRadius = UDim.new(0,8)
 
 --============================================================
--- TABS
+-- SCROLLABLE TABS
 --============================================================
 
-local exampleTab = Instance.new("TextButton")
-exampleTab.Size = UDim2.new(.5,-15,0,38)
-exampleTab.Position = UDim2.fromOffset(10,55)
-exampleTab.BackgroundColor3 = Color3.fromRGB(75,55,180)
-exampleTab.Text = "EXAMPLE"
-exampleTab.TextColor3 = Color3.new(1,1,1)
-exampleTab.TextSize = 13
-exampleTab.Font = Enum.Font.GothamBold
-exampleTab.Parent = main
+local tabsFrame = Instance.new("ScrollingFrame")
+tabsFrame.Size = UDim2.new(1,-20,0,42)
+tabsFrame.Position = UDim2.fromOffset(10,55)
+tabsFrame.BackgroundColor3 = Color3.fromRGB(11,11,16)
+tabsFrame.BorderSizePixel = 0
+tabsFrame.ScrollBarThickness = 3
+tabsFrame.ScrollingDirection = Enum.ScrollingDirection.X
+tabsFrame.CanvasSize = UDim2.fromOffset(0,0)
+tabsFrame.Parent = main
 
-Instance.new("UICorner", exampleTab).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", tabsFrame).CornerRadius = UDim.new(0,9)
 
-local usernamesTab = Instance.new("TextButton")
-usernamesTab.Size = UDim2.new(.5,-15,0,38)
-usernamesTab.Position = UDim2.new(.5,5,0,55)
-usernamesTab.BackgroundColor3 = Color3.fromRGB(32,32,42)
-usernamesTab.Text = "USERNAMES"
-usernamesTab.TextColor3 = Color3.fromRGB(180,180,190)
-usernamesTab.TextSize = 13
-usernamesTab.Font = Enum.Font.GothamBold
-usernamesTab.Parent = main
+local tabsLayout = Instance.new("UIListLayout")
+tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+tabsLayout.Padding = UDim.new(0,6)
+tabsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+tabsLayout.Parent = tabsFrame
 
-Instance.new("UICorner", usernamesTab).CornerRadius = UDim.new(0,8)
+local tabsPadding = Instance.new("UIPadding")
+tabsPadding.PaddingLeft = UDim.new(0,5)
+tabsPadding.PaddingRight = UDim.new(0,5)
+tabsPadding.Parent = tabsFrame
 
+
+local function createTab(text, active)
+
+	local button = Instance.new("TextButton")
+
+	button.Size = UDim2.fromOffset(125,32)
+
+	button.BackgroundColor3 =
+		active
+		and Color3.fromRGB(75,55,180)
+		or Color3.fromRGB(32,32,42)
+
+	button.Text = text
+
+	button.TextColor3 =
+		active
+		and Color3.new(1,1,1)
+		or Color3.fromRGB(180,180,190)
+
+	button.TextSize = 12
+	button.Font = Enum.Font.GothamBold
+	button.Parent = tabsFrame
+
+	Instance.new("UICorner", button).CornerRadius =
+		UDim.new(0,7)
+
+	return button
+end
+
+
+local exampleTab =
+	createTab("EXAMPLE", true)
+
+local usernamesTab =
+	createTab("USERNAMES", false)
+
+local availableTab =
+	createTab("AVAILABLE", false)
+
+
+task.defer(function()
+
+	tabsFrame.CanvasSize = UDim2.fromOffset(
+		tabsLayout.AbsoluteContentSize.X + 10,
+		0
+	)
+
+end)
+--============================================================
+-- AVAILABLE PAGE
+--============================================================
+
+local availablePage = Instance.new("Frame")
+availablePage.Size = UDim2.new(1,-20,1,-105)
+availablePage.Position = UDim2.fromOffset(10,105)
+availablePage.BackgroundTransparency = 1
+availablePage.Visible = false
+availablePage.Parent = main
+
+local availableTitle = Instance.new("TextLabel")
+availableTitle.Size = UDim2.new(1,-55,0,35)
+availableTitle.BackgroundTransparency = 1
+availableTitle.Text = "AVAILABLE USERNAMES"
+availableTitle.TextColor3 = Color3.new(1,1,1)
+availableTitle.TextSize = 18
+availableTitle.Font = Enum.Font.GothamBold
+availableTitle.TextXAlignment = Enum.TextXAlignment.Left
+availableTitle.Parent = availablePage
+
+local availableFrame = Instance.new("ScrollingFrame")
+availableFrame.Size = UDim2.new(1,-10,1,-50)
+availableFrame.Position = UDim2.fromOffset(5,45)
+availableFrame.BackgroundColor3 = Color3.fromRGB(11,11,16)
+availableFrame.BorderSizePixel = 0
+availableFrame.ScrollBarThickness = 4
+availableFrame.CanvasSize = UDim2.fromOffset(0,0)
+availableFrame.Parent = availablePage
+
+Instance.new("UICorner", availableFrame).CornerRadius =
+	UDim.new(0,10)
+
+local availableLayout = Instance.new("UIListLayout")
+availableLayout.Padding = UDim.new(0,5)
+availableLayout.Parent = availableFrame
+
+local availablePadding = Instance.new("UIPadding")
+availablePadding.PaddingTop = UDim.new(0,7)
+availablePadding.PaddingLeft = UDim.new(0,7)
+availablePadding.PaddingRight = UDim.new(0,7)
+availablePadding.Parent = availableFrame
+
+local availableUsernames = {}
+--============================================================
+-- REFRESH AVAILABLE BUTTON
+--============================================================
+
+local refreshAvailable = Instance.new("TextButton")
+refreshAvailable.Size = UDim2.fromOffset(40,35)
+refreshAvailable.Position = UDim2.new(1,-45,0,0)
+refreshAvailable.BackgroundColor3 = Color3.fromRGB(32,32,42)
+refreshAvailable.Text = "🔄"
+refreshAvailable.TextColor3 = Color3.new(1,1,1)
+refreshAvailable.TextSize = 18
+refreshAvailable.Font = Enum.Font.GothamBold
+refreshAvailable.Parent = availablePage
+
+Instance.new("UICorner", refreshAvailable).CornerRadius = UDim.new(0,8)
+
+local refreshStroke = Instance.new("UIStroke")
+refreshStroke.Color = Color3.fromRGB(75,55,180)
+refreshStroke.Thickness = 1
+refreshStroke.Parent = refreshAvailable
+local function addAvailableUsername(username)
+
+	if availableUsernames[username] then
+		return
+	end
+
+	availableUsernames[username] = true
+
+	local row = Instance.new("TextLabel")
+	row.Size = UDim2.new(1,-5,0,34)
+	row.BackgroundColor3 = Color3.fromRGB(24,24,33)
+	row.Text = "  " .. username .. " — AVAILABLE"
+	row.TextColor3 = Color3.fromRGB(100,255,150)
+	row.TextSize = 13
+	row.Font = Enum.Font.GothamSemibold
+	row.TextXAlignment = Enum.TextXAlignment.Left
+	row.Parent = availableFrame
+
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0,7)
+
+	availableFrame.CanvasSize = UDim2.fromOffset(
+		0,
+		availableLayout.AbsoluteContentSize.Y + 15
+	)
+end
+--============================================================
+-- CLEAR AVAILABLE USERNAMES
+--============================================================
+
+local function clearAvailableUsernames()
+
+	-- Remove all displayed usernames
+	for _, child in ipairs(availableFrame:GetChildren()) do
+		if child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+
+	-- Reset the stored username list
+	availableUsernames = {}
+
+	-- Reset scrolling position
+	availableFrame.CanvasPosition = Vector2.new(0, 0)
+	availableFrame.CanvasSize = UDim2.fromOffset(0, 0)
+end
+
+refreshAvailable.MouseButton1Click:Connect(function()
+
+	if checking then
+		return
+	end
+
+	clearAvailableUsernames()
+
+	-- Small visual feedback
+	refreshAvailable.Text = "✓"
+
+	task.delay(0.5, function()
+		if refreshAvailable and refreshAvailable.Parent then
+			refreshAvailable.Text = "🔄"
+		end
+	end)
+end)
 --============================================================
 -- PAGES
 --============================================================
 
 local examplePage = Instance.new("Frame")
 examplePage.Size = UDim2.new(1,-20,1,-105)
-examplePage.Position = UDim2.fromOffset(10,100)
+examplePage.Position = UDim2.fromOffset(10,105)
 examplePage.BackgroundTransparency = 1
 examplePage.Parent = main
 
 local usernamesPage = Instance.new("Frame")
 usernamesPage.Size = UDim2.new(1,-20,1,-105)
-usernamesPage.Position = UDim2.fromOffset(10,100)
+usernamesPage.Position = UDim2.fromOffset(10,105)
 usernamesPage.BackgroundTransparency = 1
 usernamesPage.Visible = false
 usernamesPage.Parent = main
@@ -181,8 +355,8 @@ local numberMode = false
 local letterMode = false
 
 local numberModeButton = Instance.new("TextButton")
-numberModeButton.Size = UDim2.fromOffset(120,32)
-numberModeButton.Position = UDim2.fromOffset(275,3)
+numberModeButton.Size = UDim2.fromOffset(130,30)
+numberModeButton.Position = UDim2.fromOffset(300,3)
 numberModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
 numberModeButton.Text = "NUMBER MODE: OFF"
 numberModeButton.TextColor3 = Color3.fromRGB(180,180,190)
@@ -193,8 +367,8 @@ numberModeButton.Parent = usernamesPage
 Instance.new("UICorner", numberModeButton).CornerRadius = UDim.new(0,7)
 
 local letterModeButton = Instance.new("TextButton")
-letterModeButton.Size = UDim2.fromOffset(120,32)
-letterModeButton.Position = UDim2.fromOffset(275,46)
+letterModeButton.Size = UDim2.fromOffset(130,30)
+letterModeButton.Position = UDim2.fromOffset(300,40)
 letterModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
 letterModeButton.Text = "LETTER MODE: OFF"
 letterModeButton.TextColor3 = Color3.fromRGB(180,180,190)
@@ -203,7 +377,42 @@ letterModeButton.Font = Enum.Font.GothamBold
 letterModeButton.Parent = usernamesPage
 
 Instance.new("UICorner", letterModeButton).CornerRadius = UDim.new(0,7)
+--============================================================
+-- PRONOUNCEABLE MODE
+--============================================================
 
+local pronounceableMode = false
+
+local pronounceableButton = Instance.new("TextButton")
+pronounceableButton.Size = UDim2.fromOffset(130,30)
+pronounceableButton.Position = UDim2.fromOffset(300,77)
+pronounceableButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+pronounceableButton.Text = "PRONOUNCEABLE: OFF"
+pronounceableButton.TextColor3 = Color3.fromRGB(180,180,190)
+pronounceableButton.TextSize = 11
+pronounceableButton.Font = Enum.Font.GothamBold
+pronounceableButton.Parent = usernamesPage
+
+Instance.new("UICorner", pronounceableButton).CornerRadius = UDim.new(0,7)
+
+pronounceableButton.MouseButton1Click:Connect(function()
+
+	pronounceableMode = not pronounceableMode
+
+	if pronounceableMode then
+
+		pronounceableButton.Text = "PRONOUNCEABLE: ON"
+		pronounceableButton.BackgroundColor3 = Color3.fromRGB(75,55,180)
+		pronounceableButton.TextColor3 = Color3.new(1,1,1)
+
+	else
+
+		pronounceableButton.Text = "PRONOUNCEABLE: OFF"
+		pronounceableButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+		pronounceableButton.TextColor3 = Color3.fromRGB(180,180,190)
+
+	end
+end)
 numberModeButton.MouseButton1Click:Connect(function()
 
 	numberMode = not numberMode
@@ -453,27 +662,77 @@ local function generateUsername(length)
 		generationCharacters = "abcdefghijklmnopqrstuvwxyz_"
 	end
 
-	repeat
+	if pronounceableMode then
 
-		result = ""
+		local vowels = "aeiou"
+		local consonants = "bcdfghjklmnpqrstvwxyz"
 
-		for i = 1,length do
+		repeat
 
-			local index = math.random(
-				1,
-				#generationCharacters
-			)
+			result = ""
 
-			result ..= generationCharacters:sub(
-				index,
-				index
-			)
-		end
+			local useConsonant = true
 
-	-- Make sure "_" can only appear inside the username
-	until result:sub(1,1) ~= "_"
-		and result:sub(-1) ~= "_"
-		and isUsernameSafe(result)
+			for i = 1, length do
+
+				local source
+
+				if useConsonant then
+					source = consonants
+				else
+					source = vowels
+				end
+
+				local index = math.random(1, #source)
+
+				local character = source:sub(index, index)
+
+				-- Occasionally use a number instead of a vowel
+				if numberMode and not useConsonant and math.random(1, 5) == 1 then
+
+					local numberMap = {
+						a = "4",
+						e = "3",
+						i = "1",
+						o = "0",
+						s = "5"
+					}
+
+					character = numberMap[character] or character
+				end
+
+				result ..= character
+
+				useConsonant = not useConsonant
+			end
+
+		until result:sub(1,1) ~= "_"
+			and result:sub(-1) ~= "_"
+			and isUsernameSafe(result)
+
+	else
+
+		repeat
+
+			result = ""
+
+			for i = 1,length do
+
+				local index = math.random(
+					1,
+					#generationCharacters
+				)
+
+				result ..= generationCharacters:sub(
+					index,
+					index
+				)
+			end
+
+		until result:sub(1,1) ~= "_"
+			and result:sub(-1) ~= "_"
+			and isUsernameSafe(result)
+	end
 
 	return result
 end
@@ -564,16 +823,18 @@ local function checkUsername(data)
 
 	else
 
-		data.state = "available"
+	data.state = "available"
 
-		data.row.Text =
-			"  ✅  " ..
-			username ..
-			" — Available!"
+	data.row.Text =
+		"  ✅  " ..
+		username ..
+		" — Available!"
 
-		data.row.TextColor3 =
-			Color3.fromRGB(100,255,150)
-	end
+	data.row.TextColor3 =
+		Color3.fromRGB(100,255,150)
+
+	addAvailableUsername(username)
+end
 
 	updateCounters()
 	updateCanvas()
@@ -611,7 +872,7 @@ generate.MouseButton1Click:Connect(function()
 		amount = math.clamp(
 			math.floor(enteredAmount),
 			1,
-			100
+			250
 		)
 
 		amountBox.Text = tostring(amount)
@@ -628,11 +889,17 @@ generate.MouseButton1Click:Connect(function()
 		lengthBox.Text = tostring(nameLength)
 	end
 
-	clearResults()
+		clearResults()
 
 	generate.Text = "CHECKING..."
 
-	for i = 1, amount do
+	local generated = 0
+	local attempts = 0
+	local maxAttempts = amount * 3
+
+	while generated < amount and attempts < maxAttempts do
+
+		attempts += 1
 
 		local username = generateUsername(nameLength)
 
@@ -648,6 +915,7 @@ generate.MouseButton1Click:Connect(function()
 		if not duplicate then
 
 			local data = createResult(username)
+			generated += 1
 
 			updateCanvas()
 
@@ -655,7 +923,7 @@ generate.MouseButton1Click:Connect(function()
 				checkUsername(data)
 			end)
 
-			task.wait(0.15)
+   task.wait(0.05)
 		end
 	end
 
@@ -682,42 +950,52 @@ end)
 -- TAB SWITCHING
 --============================================================
 
+local function setTab(activeTab)
+
+	examplePage.Visible = activeTab == exampleTab
+	usernamesPage.Visible = activeTab == usernamesTab
+	availablePage.Visible = activeTab == availableTab
+
+	for _, tab in ipairs({
+		exampleTab,
+		usernamesTab,
+		availableTab
+	}) do
+
+		if tab == activeTab then
+
+			tab.BackgroundColor3 =
+				Color3.fromRGB(75,55,180)
+
+			tab.TextColor3 =
+				Color3.new(1,1,1)
+
+		else
+
+			tab.BackgroundColor3 =
+				Color3.fromRGB(32,32,42)
+
+			tab.TextColor3 =
+				Color3.fromRGB(180,180,190)
+
+		end
+	end
+end
+
 exampleTab.MouseButton1Click:Connect(function()
-
-	examplePage.Visible = true
-	usernamesPage.Visible = false
-
-	exampleTab.BackgroundColor3 =
-		Color3.fromRGB(75,55,180)
-
-	usernamesTab.BackgroundColor3 =
-		Color3.fromRGB(32,32,42)
-
-	exampleTab.TextColor3 =
-		Color3.new(1,1,1)
-
-	usernamesTab.TextColor3 =
-		Color3.fromRGB(180,180,190)
+	setTab(exampleTab)
 end)
 
 usernamesTab.MouseButton1Click:Connect(function()
-
-	examplePage.Visible = false
-	usernamesPage.Visible = true
-
-	usernamesTab.BackgroundColor3 =
-		Color3.fromRGB(75,55,180)
-
-	exampleTab.BackgroundColor3 =
-		Color3.fromRGB(32,32,42)
-
-	usernamesTab.TextColor3 =
-		Color3.new(1,1,1)
-
-	exampleTab.TextColor3 =
-		Color3.fromRGB(180,180,190)
+	setTab(usernamesTab)
 end)
 
+availableTab.MouseButton1Click:Connect(function()
+	setTab(availableTab)
+end)
+
+-- Start on Example
+setTab(exampleTab)
 --============================================================
 -- DRAGGING
 --============================================================
