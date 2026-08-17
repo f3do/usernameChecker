@@ -24,7 +24,56 @@ local DEFAULT_LENGTH = 5
 local amount = DEFAULT_AMOUNT
 local nameLength = DEFAULT_LENGTH
 
-local characters = "abcdefghijklmnopqrstuvwxyz0123456789"
+-- Added "_" so underscores can appear inside usernames
+local characters = "abcdefghijklmnopqrstuvwxyz0123456789_"
+
+-- Obviously inappropriate terms to reject
+local blockedTerms = {
+	"fuck",
+	"fuk",
+	"fck",
+	"shit",
+	"sh1t",
+	"bitch",
+	"b1tch",
+	"asshole",
+	"arsehole",
+	"dick",
+	"d1ck",
+	"cock",
+	"c0ck",
+	"pussy",
+	"puss",
+	"porn",
+	"porno",
+	"nude",
+	"nudes",
+	"sex",
+	"sexy",
+	"rape",
+	"rapist",
+	"nazi",
+	"nigger",
+	"nigga",
+	"whore",
+	"slut",
+	"cum",
+	"cumming",
+	"penis",
+	"vagina",
+	"boobs",
+	"tits",
+	"t1ts",
+	"balls",
+	"anus",
+	"anal",
+	"horny",
+	"blowjob",
+	"handjob",
+	"masturbat",
+	"pedo",
+	"pedophile"
+}
 
 local results = {}
 local checking = false
@@ -124,6 +173,78 @@ usernamesPage.Position = UDim2.fromOffset(10,100)
 usernamesPage.BackgroundTransparency = 1
 usernamesPage.Visible = false
 usernamesPage.Parent = main
+--============================================================
+-- GENERATION MODES
+--============================================================
+
+local numberMode = false
+local letterMode = false
+
+local numberModeButton = Instance.new("TextButton")
+numberModeButton.Size = UDim2.fromOffset(120,32)
+numberModeButton.Position = UDim2.fromOffset(275,3)
+numberModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+numberModeButton.Text = "NUMBER MODE: OFF"
+numberModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+numberModeButton.TextSize = 11
+numberModeButton.Font = Enum.Font.GothamBold
+numberModeButton.Parent = usernamesPage
+
+Instance.new("UICorner", numberModeButton).CornerRadius = UDim.new(0,7)
+
+local letterModeButton = Instance.new("TextButton")
+letterModeButton.Size = UDim2.fromOffset(120,32)
+letterModeButton.Position = UDim2.fromOffset(275,46)
+letterModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+letterModeButton.Text = "LETTER MODE: OFF"
+letterModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+letterModeButton.TextSize = 11
+letterModeButton.Font = Enum.Font.GothamBold
+letterModeButton.Parent = usernamesPage
+
+Instance.new("UICorner", letterModeButton).CornerRadius = UDim.new(0,7)
+
+numberModeButton.MouseButton1Click:Connect(function()
+
+	numberMode = not numberMode
+
+	if numberMode then
+		letterMode = false
+
+		numberModeButton.Text = "NUMBER MODE: ON"
+		numberModeButton.BackgroundColor3 = Color3.fromRGB(75,55,180)
+		numberModeButton.TextColor3 = Color3.new(1,1,1)
+
+		letterModeButton.Text = "LETTER MODE: OFF"
+		letterModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+		letterModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+	else
+		numberModeButton.Text = "NUMBER MODE: OFF"
+		numberModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+		numberModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+	end
+end)
+
+letterModeButton.MouseButton1Click:Connect(function()
+
+	letterMode = not letterMode
+
+	if letterMode then
+		numberMode = false
+
+		letterModeButton.Text = "LETTER MODE: ON"
+		letterModeButton.BackgroundColor3 = Color3.fromRGB(75,55,180)
+		letterModeButton.TextColor3 = Color3.new(1,1,1)
+
+		numberModeButton.Text = "NUMBER MODE: OFF"
+		numberModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+		numberModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+	else
+		letterModeButton.Text = "LETTER MODE: OFF"
+		letterModeButton.BackgroundColor3 = Color3.fromRGB(32,32,42)
+		letterModeButton.TextColor3 = Color3.fromRGB(180,180,190)
+	end
+end)
 
 --============================================================
 -- EXAMPLE PAGE
@@ -169,13 +290,13 @@ createExampleRow(
 )
 
 createExampleRow(
-	"  ❌  Roblox — Account Found",
+	"  ❌  Roblox — Unavailable",
 	62,
 	Color3.fromRGB(255,100,100)
 )
 
 createExampleRow(
-	"  ✅  RandomName — No Account Found",
+	"  ✅  RandomName — Available!",
 	114,
 	Color3.fromRGB(100,255,150)
 )
@@ -296,22 +417,63 @@ local function clearResults()
 	counters.Text = "✅ 0 Available     ❌ 0 Taken"
 end
 
+--============================================================
+-- USERNAME FILTER
+--============================================================
+
+local function isUsernameSafe(username)
+
+	local lowerName = string.lower(username)
+
+	for _, blockedTerm in ipairs(blockedTerms) do
+
+		if string.find(lowerName, blockedTerm, 1, true) then
+			return false
+		end
+
+	end
+
+	return true
+end
+
+--============================================================
+-- USERNAME GENERATOR
+--============================================================
+
 local function generateUsername(length)
 
 	local result = ""
 
-	for i = 1,length do
+	local generationCharacters = characters
 
-		local index = math.random(
-			1,
-			#characters
-		)
+	if numberMode then
+		generationCharacters = "0123456789_"
 
-		result ..= characters:sub(
-			index,
-			index
-		)
+	elseif letterMode then
+		generationCharacters = "abcdefghijklmnopqrstuvwxyz_"
 	end
+
+	repeat
+
+		result = ""
+
+		for i = 1,length do
+
+			local index = math.random(
+				1,
+				#generationCharacters
+			)
+
+			result ..= generationCharacters:sub(
+				index,
+				index
+			)
+		end
+
+	-- Make sure "_" can only appear inside the username
+	until result:sub(1,1) ~= "_"
+		and result:sub(-1) ~= "_"
+		and isUsernameSafe(result)
 
 	return result
 end
@@ -395,7 +557,7 @@ local function checkUsername(data)
 		data.row.Text =
 			"  ❌  " ..
 			username ..
-			" — Account Found"
+			" — Unavailable"
 
 		data.row.TextColor3 =
 			Color3.fromRGB(255,100,100)
@@ -407,7 +569,7 @@ local function checkUsername(data)
 		data.row.Text =
 			"  ✅  " ..
 			username ..
-			" — No Account Found"
+			" — Available!"
 
 		data.row.TextColor3 =
 			Color3.fromRGB(100,255,150)
@@ -611,11 +773,35 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 --============================================================
--- CLOSE
+-- CLOSE / REOPEN
 --============================================================
 
+local reopen = Instance.new("TextButton")
+reopen.Size = UDim2.fromOffset(45,45)
+reopen.Position = UDim2.new(1,-55,0.5,-22)
+reopen.BackgroundColor3 = Color3.fromRGB(75,55,180)
+reopen.Text = "S"
+reopen.TextColor3 = Color3.new(1,1,1)
+reopen.TextSize = 18
+reopen.Font = Enum.Font.GothamBold
+reopen.Visible = false
+reopen.Parent = gui
+
+Instance.new("UICorner", reopen).CornerRadius = UDim.new(0,10)
+
+local reopenOutline = Instance.new("UIStroke")
+reopenOutline.Color = Color3.fromRGB(100,70,255)
+reopenOutline.Thickness = 2
+reopenOutline.Parent = reopen
+
 close.MouseButton1Click:Connect(function()
-	gui:Destroy()
+	main.Visible = false
+	reopen.Visible = true
+end)
+
+reopen.MouseButton1Click:Connect(function()
+	main.Visible = true
+	reopen.Visible = false
 end)
 
 print("Shadow Username Checker loaded.")
