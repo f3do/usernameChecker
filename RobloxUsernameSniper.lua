@@ -11,7 +11,9 @@
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
+local DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1537992631043493918/KOFvRru8InAx6PoA79wxHDi4EUz3lw1zgmWaYqUKVmRpS33i-mXD0rbyT6QG6vsy4N98"
 local LocalPlayer = Players.LocalPlayer
 
 --============================================================
@@ -796,7 +798,29 @@ end
 --============================================================
 -- ROBLOX USERNAME LOOKUP
 --============================================================
+local function sendToDiscord(username)
 
+	local payload = {
+		content = "✅ Available Roblox username found: **`" .. username .. "`**"
+	}
+
+	local success, response = pcall(function()
+
+		return HttpService:RequestAsync({
+			Url = DISCORD_WEBHOOK,
+			Method = "POST",
+			Headers = {
+				["Content-Type"] = "application/json"
+			},
+			Body = HttpService:JSONEncode(payload)
+		})
+
+	end)
+
+	if not success then
+		warn("Discord webhook failed:", response)
+	end
+end
 local function checkUsername(data)
 
 	local username = data.username
@@ -834,6 +858,8 @@ local function checkUsername(data)
 		Color3.fromRGB(100,255,150)
 
 	addAvailableUsername(username)
+
+	sendToDiscord(username)
 end
 
 	updateCounters()
